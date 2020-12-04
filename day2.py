@@ -1,6 +1,6 @@
 import re
 
-with open("day2input.txt", "r") as f:
+with open("input/day2input.txt", "r") as f:
     inputlines = f.read().splitlines()
 
 validPasswords = 0

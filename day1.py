@@ -1,4 +1,4 @@
-with open("day1input.txt", "r") as f:
+with open("input/day1input.txt", "r") as f:
     numbers = set(int(x) for x in f.read().splitlines())
 
 def findProduct(sumVal):

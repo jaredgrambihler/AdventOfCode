@@ -1,4 +1,4 @@
-with open("day3input.txt", "r") as f:
+with open("input/day3input.txt", "r") as f:
     inputLines = f.read().splitlines()
 
 def isTree(i, j):
