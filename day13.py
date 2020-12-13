@@ -20,20 +20,6 @@ def solve(inputF):
     print(minLeaveTime, minBus)
     return (minLeaveTime - startTime) * minBus
 
-def lcm(x, y):
-   if x > y:
-       greater = x
-   else:
-       greater = y
-
-   while(True):
-       if((greater % x == 0) and (greater % y == 0)):
-           lcm = greater
-           break
-       greater += 1
-
-   return lcm
-
 def solve2(inputF):
     with open(inputF, 'r') as f:
         text = f.read()
@@ -45,26 +31,18 @@ def solve2(inputF):
         if busId == "x":
             continue
         l.append((i, int(busId)))
-    i = 0
-    print(l)
-    dp = [0 for _ in range(len(l))]
-    dp[0] = l[0][1]
-    stepSize = l[0][1]
-    for i in range(1, len(dp)):
-        prevValue = dp[i-1]
-        offset = (prevValue % l[i][1]) - l[i][0]
-        while offset != 0:
-            prevValue += stepSize
-            offset = (prevValue % l[i][1]) - l[i][0]
-        dp[i] = prevValue
-        stepSize = lcm(dp[i], dp[i-1])
-        print(dp)
-    return dp[-1]
-    
-    
 
-    
+    time = 0
+    # start moving at a step of all multiples to satisfy
+    stepSize = l[0][1]
+    for offset, busId in l[1:]:
+        # loop until offset is valid
+        while (time + offset) % busId != 0:
+            time += stepSize
+        # have to satisfy both multiples when finding the next offset
+        stepSize *= busId
+    return time
    
 
 print(solve2("input/day13test.txt"))
-# print(solve2("input/day13input.txt"))
+print(solve2("input/day13input.txt"))
