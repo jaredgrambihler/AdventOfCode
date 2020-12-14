@@ -20,7 +20,6 @@ def countInside(bag, bagToTypes):
     if bagToTypes[bag] == []:
         return 0
     else:
-        minCount = 9999999
         totalMin = 0
         for count, name in bagToTypes[bag]:
             total = countInside(name, bagToTypes) * count + count
