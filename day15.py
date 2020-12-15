@@ -1,43 +1,28 @@
 import copy
 from pprint import pprint
 
-def solve(inputF):
+def solveBoth(inputF, sequenceNumber):
     with open(inputF, 'r') as f:
         text = f.read()
     nums = [int(x) for x in text.split(",")]
     # start of speaking
     numToSpoken = {num: i for i, num in enumerate(nums[:-1])}
     prev = nums[-1]
-    for i in range(len(nums)-1, 2019):
+    for i in range(len(nums)-1, sequenceNumber - 1):
         if prev not in numToSpoken:
-            nextVal = 0
-            numToSpoken[prev] = i
-            prev = nextVal
+            cur = 0
         else:
             cur = i - numToSpoken[prev]
-            numToSpoken[prev] = i
-            prev = cur
-        # print(prev, numToSpoken)
+        numToSpoken[prev] = i
+        prev = cur
     return prev
-    
+
+def solve(inputF):
+    return solveBoth(inputF, 2020)
+
 
 def solve2(inputF):
-    with open(inputF, 'r') as f:
-        text = f.read()
-    nums = [int(x) for x in text.split(",")]
-    # start of speaking
-    numToSpoken = {num: i for i, num in enumerate(nums[:-1])}
-    prev = nums[-1]
-    for i in range(len(nums)-1, 30000000-1):
-        if prev not in numToSpoken:
-            nextVal = 0
-            numToSpoken[prev] = i
-            prev = nextVal
-        else:
-            cur = i - numToSpoken[prev]
-            numToSpoken[prev] = i
-            prev = cur
-    return prev
+    return solveBoth(inputF, 30000000)
     
 
 print("Part 1")
