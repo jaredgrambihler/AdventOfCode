@@ -1,10 +1,12 @@
 import copy
+import matplotlib.pyplot as plt
 from pprint import pprint
 
 def solveBoth(inputF, sequenceNumber):
     with open(inputF, 'r') as f:
         text = f.read()
     nums = [int(x) for x in text.split(",")]
+    sequenceVals = copy.copy(nums)
     # start of speaking
     numToSpoken = {num: i for i, num in enumerate(nums[:-1])}
     cur = nums[-1]
@@ -15,6 +17,9 @@ def solveBoth(inputF, sequenceNumber):
             nextVal = i - numToSpoken[cur]
         numToSpoken[cur] = i
         cur = nextVal
+        sequenceVals.append(cur)
+    plt.plot([x for x in range(sequenceNumber)], sequenceVals)
+    plt.show
     return cur
 
 def solve(inputF):
