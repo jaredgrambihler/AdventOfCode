@@ -7,15 +7,15 @@ def solveBoth(inputF, sequenceNumber):
     nums = [int(x) for x in text.split(",")]
     # start of speaking
     numToSpoken = {num: i for i, num in enumerate(nums[:-1])}
-    prev = nums[-1]
+    cur = nums[-1]
     for i in range(len(nums)-1, sequenceNumber - 1):
-        if prev not in numToSpoken:
-            cur = 0
+        if cur not in numToSpoken:
+            nextVal = 0
         else:
-            cur = i - numToSpoken[prev]
-        numToSpoken[prev] = i
-        prev = cur
-    return prev
+            nextVal = i - numToSpoken[cur]
+        numToSpoken[cur] = i
+        cur = nextVal
+    return cur
 
 def solve(inputF):
     return solveBoth(inputF, 2020)
