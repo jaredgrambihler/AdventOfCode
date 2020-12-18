@@ -1,4 +1,3 @@
-"""This is code is awful but it works :) """
 import copy
 import os
 import re
