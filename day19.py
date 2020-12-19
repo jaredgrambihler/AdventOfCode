@@ -61,49 +61,38 @@ def solve(inputF):
             count += 1
 
     return count
-    
 
-def make_rule2(i, rules, d):
-    options = rules[i]
-    rule_options = []
-    for option in options:
-        option = option.strip()
-        if option[0] == "\"":
-            return [option[1:-1]]
-        else:
-            ruleNums = [x.strip() for x in option.split()]
-            sub_options = [make_rule2(x, rules, d) for x in ruleNums]
-            new_options = []
-            prev_options = [""]
-            for option_list in sub_options:
-                for option in option_list:
-                    for x in prev_options:
-                        new_options.append(x + option)
-                prev_options = new_options
-                new_options = []
-            rule_options += prev_options
-    d[i] = rule_options
-    return rule_options
 
-def matches2(message, options, d):
-    if message in options:
-        return True
+def make_rule_regex(rules, rule_num):
+    if rules[rule_num][0] in ["a", "b"]:
+        return rules[rule_num][0]
     else:
-        for possible in d['42']:
-            if possible in message and possible in message.replace(possible, "", 1):
-                result = matches2(message.replace(possible, "", 1), options, d)
-                if result:
-                    return True
-                for x in d['42']:
-                    for y in d['11']:
-                        for z in d['31']:
-                            possible = x + y + z
-                            if possible in message and possible in message.replace(possible, "", 1):
-                                result = matches2(message.replace(possible, "", 1), options, d)
-                                if result:
-                                    return True
-        return False
+        rs = []
+        for sub_rule in rules[rule_num]:
+            r = ""
+            for num in sub_rule.strip().split(" "):
+                r += make_rule_regex(rules, num)
+            rs.append(r)
+        regex = "(" + "|".join(rs) + ")"
+        # 8: 42 | 42 8
+        # 11: 42 31 | 42 11 31
+        # 8 can be a regex of 42 some number of times
+        # 11 is 42 31, 42 42 31 31, 42 42 42 31 31 31, ...
+        # so some sequence of 42 followed by 31
+        # the choice to match it up to 20 times is arbitrary but sufficient
+        if rule_num == "8":
+            fourty_two = make_rule_regex(rules, "42")
+            for i in range(1, 20):
+                regex += "|" + "(" + fourty_two  + f"{{{i}}})"
+            regex = "(" + regex + ")"
+        elif rule_num == "11":
+            fourty_two = make_rule_regex(rules, "42")
+            thirty_one = make_rule_regex(rules, "31")
+            for i in range(1, 20):
+                regex += "|" + "(" + fourty_two +f"{{{i}}}" + thirty_one + f"{{{i}}}" + ")"
+            regex = "(" + regex + ")"
 
+        return regex
 
 def solve2(inputF):
     with open(inputF, 'r') as f:
@@ -116,37 +105,17 @@ def solve2(inputF):
     for line in rule_lines:
         line = line.split(":")
         rule_num = line[0]
-        options = line[1].split("|")
+        options = line[1].replace("\"", "").strip().split("|")
         rules[rule_num] = options
 
     messages = messages.splitlines()
+    regex = make_rule_regex(rules, "0")
 
-    maxLength = max(len(x) for x in messages)
-
-    d = dict()
-    rule_options = make_rule2("0", rules, d)
-    rule_options = set(rule_options)
-
-    # update rule_options
-    # 8 can be the same thing, or same + same
-    # 11 can be the same thing, or '42' + '11' + '31'
-    # nothing else references 11 or 8, so we just add the loops to the set
-    eleven = d['11']
-    fourty_two = d['42']
-    thirty_one = d['31']
-    """
-    loopVals = fourty_two + eleven
-    for x in fourty_two:
-        for y in eleven:
-            for z in thirty_one:
-                loopVals.append(x + y + z)
-    """
-    print(len(eleven), len(fourty_two), len(thirty_one))
     count = 0
     for message in messages:
-        if matches2(message, rule_options, d):
-            count += 1
-
+        if match := re.match(regex, message):
+            if message.replace(match.group(0), "", 1) == "":
+                count += 1
     return count
 
 print("Part 1")
