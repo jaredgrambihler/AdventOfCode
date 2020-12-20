@@ -63,6 +63,14 @@ class Tile:
             tile = np.rot90(tile)
         return Tile(number, tile)
 
+    @staticmethod
+    def flip(tile):
+        new_tile = copy.deepcopy(tile.tile)
+        for j in range(len(new_tile[0]) // 2):
+            for i in range(len(new_tile)):
+                new_tile[i][j], new_tile[i][-j-1] = new_tile[i][-j-1], new_tile[i][j]
+        return Tile(tile.number, new_tile)
+
 
 def solve(inputF):
     with open(inputF, 'r') as f:
@@ -105,12 +113,11 @@ def solve(inputF):
     return product
 
 
-def combine_grid(tile_grid, tiles):
+def combine_grid(tile_grid):
     combined = []
     for row in tile_grid:
         small_tiles = []
-        for tile, rotation in row:
-            tile = Tile.rotate(tiles[tile], rotation)
+        for num, tile in row:
             small_tiles.append(tile.small_tile)
         cur_rows = [[] for _ in range(len(small_tiles[0]))]
         for small_tile in small_tiles:
@@ -119,6 +126,39 @@ def combine_grid(tile_grid, tiles):
         combined += cur_rows
     return combined
 
+
+def find_below(tile, tileNum, tiles, ingrid):
+    edge = tile.bottom
+    for other_num, other_tile in tiles.items():
+        if other_num == tileNum or other_num in ingrid:
+            continue
+        for flip_way in [other_tile, Tile.flip(other_tile)]:
+            for cur_tile in [Tile.rotate(flip_way, i) for i in range(0, 4)]:
+                if cur_tile.top == edge:
+                    return (other_num, cur_tile)
+
+def find_right(tile, tileNum, tiles, ingrid):
+    edge = tile.right
+    for other_num, other_tile in tiles.items():
+        if other_num == tileNum or other_num in ingrid:
+            continue
+        for flip_way in [other_tile, Tile.flip(other_tile)]:
+            for cur_tile in [Tile.rotate(flip_way, i) for i in range(0, 4)]:
+                if cur_tile.left == edge:
+                    return (other_num, cur_tile)
+
+def is_sea_monster(combined_grid, i, j):
+    monster = """
+                  # 
+#    ##    ##    ###
+ #  #  #  #  #  #
+"""
+    for x, line in enumerate(monster.splitlines()):
+        for y, char in enumerate(line):
+            if char == "#":
+                if combined_grid[i+x][j+y] != "#":
+                    return False
+    return True
 
 def solve2(inputF):
     with open(inputF, 'r') as f:
@@ -129,10 +169,6 @@ def solve2(inputF):
         tile_lines = tile_lines.splitlines()
         number = int(tile_lines[0].split()[1][:-1])
         tiles[number] = Tile(number, tile_lines[1:])
-
-        # print(tile_lines)
-        t = tiles[number]
-        # print(f"Top: {t.top}\nLeft: {t.left}\nRight: {t.right}\nBottom: {t.bottom}")
     
     tile_to_adj = {(str(num) + d): [] for num in tiles.keys() for d in ["T", "L", "R", "B"]}
 
@@ -172,86 +208,69 @@ def solve2(inputF):
     corner_sides = sorted(corner_sides, key=lambda x: side_to_num[x])
     right_side = corner_sides[0]
     rotation_times = {"T": 3, "R": 0, "B": 1, "L": 2}
-    # top_left_tile = Tile.rotate(tiles[top_left], rotation_times[right_side])
+    top_left_tile = Tile.rotate(tiles[top_left], rotation_times[right_side])
+    # find the matches in the rest of the tiles like we did before to build this out
     
-    
-    def get_right_side(num, times):
-        if times == 0:
-            side = "R"
-        elif times == 1:
-            side = "B"
-        elif times == 2:
-            side = "L"
-        elif times == 3:
-            side = "T"
-        return str(num) + side
-
-    def get_bottom_side(num, times):
-        side = ""
-        if times == 0:
-            side = "B"
-        elif times == 1:
-            side = "L"
-        elif times == 2:
-            side = "T"
-        elif times == 3:
-            side = "R"
-        return str(num) + side
-
-
-    tile_grid = [[]]
-    
-    count = 0
-    print(tile_to_adj)
+    ingrid = set([top_left])
+    first_row = [(top_left, top_left_tile)]
     while True:
-        if count > 0:
-            next_tile = tile_to_adj[get_bottom_side(tile_grid[-1][0][0], tile_grid[-1][0][1])]
-            if len(next_tile) == 0:
-                break
-            next_tile = next_tile[0]
-            side = next_tile[-1]
-            num = int(next_tile[:-1])
-            if side == "T":
-                rotation = 0
-            elif side == "R":
-                rotation = 1
-            elif side == "B":
-                rotation = 2
-            elif side == "L":
-                rotation = 3
-            row = []
-            row.append((num, rotation))
-        else:
-            row  = [(top_left, rotation_times[right_side])]
-        
-        # get the first row tile
-        while True:
-            next_tile = tile_to_adj[get_right_side(row[-1][0], row[-1][1])]
-            if len(next_tile) == 0:
-                break
-            next_tile = next_tile[0]
-            side = next_tile[-1]
-            num = int(next_tile[:-1])
-            if side == "L":
-                rotation = 0
-            elif side == "T":
-                rotation = 1
-            elif side == "R":
-                rotation = 2
-            elif side == "B":
-                rotation = 3
-            row.append((num, rotation))
-        tile_grid.append(row)
-        count += 1
-    tile_grid = tile_grid[1:]
-    print("Tile Grid Rows")
-    for row in tile_grid:
-        print(len(row))
+        right_tile = find_right(first_row[-1][1], first_row[-1][0], tiles, ingrid)
+        if not right_tile:
+            break
+        ingrid.add(right_tile[0])
+        tiles[right_tile[0]] = right_tile[1]
+        first_row.append(right_tile)
 
-    value_grid = combine_grid(tile_grid, tiles)
-    # for row in value_grid:
-    #     print(len(row))
-    # pprint(value_grid)
+    tile_grid = [first_row]
+    
+    while True:
+        below_tile = find_below(tile_grid[-1][0][1], tile_grid[-1][0][0], tiles, ingrid)
+        if not below_tile:
+            break
+        ingrid.add(below_tile[0])
+        tiles[below_tile[0]] = below_tile[1]
+        row = [below_tile]
+        while True:
+            right_tile = find_right(row[-1][1], row[-1][0], tiles, ingrid)
+            if not right_tile:
+                break
+            ingrid.add(right_tile[0])
+            tiles[right_tile[0]] = right_tile[1]
+            row.append(right_tile)
+        tile_grid.append(row)
+
+    print("Grid is")
+    for x in tile_grid:
+        print([y[0] for y in x])
+
+    combined_grid = combine_grid(tile_grid)
+
+    # look for sea monster
+    # assume none overlap
+    sea_monster_x = 20
+    sea_monster_y = 3
+    monster_counts = []
+    for grid in [combined_grid, Tile.rotate(Tile(-1, combined_grid), 1).tile,
+                 Tile.rotate(Tile(-1, combined_grid), 2).tile,
+                 Tile.rotate(Tile(-1, combined_grid), 3).tile]:
+        for flipped_grid in [grid, Tile.flip(Tile(-1, grid)).tile]:
+            monsters = 0
+            for i in range(len(flipped_grid) - sea_monster_y + 1):
+                for j in range(len(flipped_grid[0]) - sea_monster_x + 1):
+                    if is_sea_monster(flipped_grid, i, j):
+                        monsters +=1
+            monster_counts.append(monsters)
+    print("Monster found", monster_counts)
+    # use max count
+    monsters = max(monster_counts)
+    num_hashs = 0
+    for i in range(len(combined_grid)):
+        for j in range(len(combined_grid[0])):
+            if combined_grid[i][j] == "#":
+                num_hashs += 1
+    monster_hash = 15
+    print("Num hashes", num_hashs)
+    return num_hashs - monster_hash * monsters
 
 print("Part 1")
 print(solve(f"input/day{day}test.txt"))
@@ -259,4 +278,4 @@ print(solve(f"input/day{day}input.txt"))
 
 print("Part 2")
 print(solve2(f"input/day{day}test.txt"))
-# print(solve2(f"input/day{day}input.txt"))
+print(solve2(f"input/day{day}input.txt"))
