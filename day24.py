@@ -20,7 +20,7 @@ def solve(inputF):
     for line in text.splitlines():
         directions = []
         i = 0
-        while i < len(line) - 1:
+        while i < len(line):
             if line[i] == 's' or line[i] == 'n':
                 directions.append(line[i] + line[i+1])
                 i += 2
@@ -29,7 +29,6 @@ def solve(inputF):
                 i += 1
             else:
                 print("Not possible")
-        directions.append(line[-1])
         all_directions.append(directions)
     # represent tiles as alternating rows, cols
     # so full grid is
@@ -42,26 +41,30 @@ def solve(inputF):
     for directions in all_directions:
         x = 0
         y = 0
+        z = 0
+        print(directions)
         for direction in directions:
             if direction == "e":
-                x += 2
-            elif direction == "w":
-                x -= 2
-            elif direction == "nw":
-                x -= 1
-                y += 1
-            elif direction == "ne":
-                x += 1
-                y += 1
-            elif direction == "sw":
-                x -= 1
                 y -= 1
+                x += 1
+            elif direction == "w":
+                y += 1
+                x -= 1
+            elif direction == "nw":
+                x -=1
+                z += 1
+            elif direction == "ne":
+                y -= 1
+                z += 1
+            elif direction == "sw":
+                y += 1
+                z -= 1
             elif direction == "se":
                 x += 1
-                y -= 1
+                z -= 1
             else:
                 print("not possible")
-        tile = (x, y)
+        tile = (x, y, z)
         c[tile] += 1
         if tile in black_tiles:
             # flip back to white if it is black
