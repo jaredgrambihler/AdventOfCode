@@ -30,12 +30,6 @@ def solve(inputF):
             else:
                 print("Not possible")
         all_directions.append(directions)
-    # represent tiles as alternating rows, cols
-    # so full grid is
-    # 1 0 1 0
-    # 0 1 0 1
-    # where 0 means nothing
-    # find the point of each tile from directions
     black_tiles = set()
     c = Counter()
     for directions in all_directions:
@@ -94,12 +88,6 @@ def solve2(inputF):
             else:
                 print("Not possible")
         all_directions.append(directions)
-    # represent tiles as alternating rows, cols
-    # so full grid is
-    # 1 0 1 0
-    # 0 1 0 1
-    # where 0 means nothing
-    # find the point of each tile from directions
     black_tiles = set()
     c = Counter()
     for directions in all_directions:
