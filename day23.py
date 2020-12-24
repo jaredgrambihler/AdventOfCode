@@ -56,22 +56,12 @@ class Node:
     def __hash__(self):
         return self.val*2654435761 % 2^32
 
-    def __repr__(self):
-        return self.output(set())
-
-    def output(self, visited):
-        if self in visited:
-            return ""
-        visited.add(self)
-        return "->".join([str(self.val), self.next.output(visited)])
-
 def solve2(inputF):
     with open(inputF, 'r') as f:
         text = f.read()
     cups = [int(c) for c in text]
     i = 0
     cur = cups[-1]
-    minCup = min(cups)
     maxCup = max(cups)
     cups = cups + [x for x in range(maxCup + 1, 1000000 + 1)]
     minCup = min(cups)
